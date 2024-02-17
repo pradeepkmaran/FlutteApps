@@ -1,4 +1,9 @@
+// import 'dart:js_interop';
+// import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutterworkshop/db/database.dart';
+import 'package:flutterworkshop/home_page.dart';
 import 'package:flutterworkshop/signup_page.dart';
 
 class LoginPage extends StatelessWidget {
@@ -53,35 +58,74 @@ class _LoginFormState extends State<LoginForm> {
         TextField(
           controller: pwController,
           decoration: InputDecoration(
-              labelText: "Enter pw",
+              labelText: "Enter password",
               prefixIcon: Icon(Icons.lock),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.0),
               )
           ),
+          obscureText: true,
         ),
         const SizedBox(height: 20.0),
-        ElevatedButton(onPressed: () {
+        ElevatedButton(onPressed: () async {
           // Add login actions
+          String email = emailController.text;
+          String pw = pwController.text;
+          if(email.isNotEmpty && pw.isNotEmpty){
+            List<Map<String, dynamic>> loginResult = await DatabaseHelper.instance.querySingleUser(email, pw);
+            if(loginResult.isNotEmpty){
+              print(loginResult);
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage()));
+            }
+            else{
+              print("Sign up or Enter correct details");
+              showAlert('AppSays', "Sign up or Enter correct details!");
+            }
+          }
+          else{
+            print("Enter all details");
+            showAlert('AppSays', "Enter all required details!");
+          }
         },
-            child: Text('Login'),
             style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 28),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             )),
+          child: const Text('Login'),
         ),
-        SizedBox(height: 20,),
+        const SizedBox(height: 20,),
         TextButton(onPressed: (){
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpPage()));
-        },
-            child: Text("Dont have an account? Sign Up here!",
-            style: TextStyle(
-              fontSize: 18.0
-            ),))
-
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpPage()));
+          },
+            child: const Text("Dont have an account? Sign Up here!",
+              style: TextStyle(
+                fontSize: 18.0
+              ),
+            )
+        )
       ],
     );
   }
+
+  // This function is to show alert dialogs
+  showAlert(String alertName, String text){
+    String actionBtn = "OK";
+    return showDialog(context: context, builder: (BuildContext context){
+      return AlertDialog(
+        title: Text(alertName),
+        content: Text(text),
+        actions: [
+          TextButton(
+              onPressed: (){
+                Navigator.of(context).pop();
+              },
+              child: Text(actionBtn))
+        ],
+      );
+    }
+    );
+  }
+
 }
 
 
